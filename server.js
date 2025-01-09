@@ -58,9 +58,11 @@ const validateinputs = async (field)=>{
         console.error('Error fetching data:', error.message);
     };
 };
-const handlerErr=(arr,val)=>{
+const handlerErr=(arr,arrname,val)=>{
     var a;
-    switch(arr){
+    
+    
+    switch(arrname){
         case 'purpose':
             a = arr.filter(x=>x.purpose_of_remittance ==val);
             if(a.length == 0) return "Invalid data for Sender_purpose";
@@ -69,7 +71,7 @@ const handlerErr=(arr,val)=>{
                 a = arr.filter(x=>x.occupation ==val);
                 if(a.length == 0) return "Invalid data sender_occupation";
                 break;
-                case 'sourcefund':
+                case 'sof':
                 a = arr.filter(x=>x.source_of_fund ==val);
                 if(a.length == 0) return "Invalid data for sender_source_of_fund";
                 break;  
@@ -77,7 +79,7 @@ const handlerErr=(arr,val)=>{
                     a = arr.filter(x=>x.employment_nature ==val);
                     if(a.length == 0) return "Invalid data for sender_employment_nature";
                     break;
-                    case 'relationship':
+                    case 'rel':
                         a = arr.filter(x=>x.relationship ==val);
                         if(a.length == 0) return "Invalid data for sender_relationship";
                         break;
@@ -87,7 +89,7 @@ const handlerErr=(arr,val)=>{
                         break;
 
                     }
-                    return 0;
+                    return 'null';
 }
 app.use(cors());
 app.use(bodyParser.json());
@@ -109,11 +111,30 @@ app.post('/api/validate',authenticateJWT,async (req,res)=>{
     var employment= await validateinputs('employment');
     var rel = await validateinputs('relationship');
     var partner = await validateinputs('partner');
-  
-//   const valpurpose = purpose.filter(x=>x.purpose_of_remittance == sender_purpose);
-  if(valpurpose.length == 0){
-    return res.status(404).json({message:"invalid data"});
-  }
+    
+var test = [purpose, 'purpose', sender_purpose];
+var test1 = [occupation, 'occupation', sender_occupation];
+var test2 = [sof, 'sof', sender_source_of_fund];
+var test3 = [employment, 'employment', sender_employment_nature];
+var test4 = [rel, 'rel', sender_relationship];
+var test5 = [partner, 'partner', send_partner_code];
+var allArr = [test, test1,test2,test3,test4,test5];
+for (const element of allArr) {
+    const a = handlerErr(element[0], element[1], element[2]);
+    if (!a.includes("Invalid")) {
+        continue;// Send response and exit
+    }
+    return res.status(200).json({ result: a }); 
+   
+}
+// handlerErr(sof,'sof',sender_source_of_fund);
+
+// handlerErr(employment,'employment',sender_employment_nature);
+// handlerErr(rel,'rel',sender_relationship);
+// handlerErr(partner,'partner',send_partner_code);
+//   if(valpurpose.length == 0){
+//     return res.status(404).json({message:"invalid data"});
+//   }
     try{
         let pool = await sql.connect(config);
         let result = await pool.request()
